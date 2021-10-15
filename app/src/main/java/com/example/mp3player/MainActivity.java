@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.PermissionToken;
@@ -32,31 +33,31 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void runtimePermission() {
-        Dexter.withContext(this)
-                .withPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
-                .withListener(new PermissionListener() {
-                    @Override
-                    public void onPermissionGranted(PermissionGrantedResponse permissionGrantedResponse) {
-                        display();
-                    }
+       Dexter.withActivity(this)
+               .withPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+               .withListener(new PermissionListener() {
+                   @Override
+                   public void onPermissionGranted(PermissionGrantedResponse response) {
+                       display();
+                   }
 
-                    @Override
-                    public void onPermissionDenied(PermissionDeniedResponse permissionDeniedResponse) {
+                   @Override
+                   public void onPermissionDenied(PermissionDeniedResponse response) {
 
-                    }
+                   }
 
-                    @Override
-                    public void onPermissionRationaleShouldBeShown(PermissionRequest permissionRequest, PermissionToken permissionToken) {
-                        permissionToken.continuePermissionRequest();
-                    }
-                }).check();
+                   @Override
+                   public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
+                        token.continuePermissionRequest();
+                   }
+               }).check();
     }
 
-    public ArrayList<File> songFileFind(File mp3file) {
+    public ArrayList<File> songFileFind(File file) {
 
         ArrayList<File> arrayListMp3 = new ArrayList<>();
 
-        File[] files = mp3file.listFiles();
+        File[] files = file.listFiles();
 
         for (File singleFile : files) {
 
@@ -64,12 +65,11 @@ public class MainActivity extends AppCompatActivity {
 
                 arrayListMp3.addAll(songFileFind(singleFile));
             } else {
-                if (singleFile.getName().endsWith(".mp3") || singleFile.getName().endsWith(".wav")) {
+                if (singleFile.getName().endsWith(".mp3")) {
 
                     arrayListMp3.add(singleFile);
                 }
             }
-
         }
         return arrayListMp3;
     }
@@ -77,8 +77,13 @@ public class MainActivity extends AppCompatActivity {
     void display() {
         final ArrayList<File> mySongs = songFileFind(Environment.getExternalStorageDirectory());
         items = new String[mySongs.size()];
-        for (int i = 0; i < mySongs.size(); i++) {
-            items[i] = mySongs.get(i).getName().toString().replace(".mp3", "").replace(".wav", "");
+        if (mySongs.size() != 0) {
+            for (int i = 0; i < mySongs.size(); i++) {
+                items[i] = mySongs.get(i).getName();
+            }
+        }
+        else {
+            Toast.makeText(this, "MP3 file not found", Toast.LENGTH_SHORT).show();
         }
 
         ArrayAdapter<String> myAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, items);
